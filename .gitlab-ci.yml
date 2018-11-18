@@ -1,0 +1,8 @@
+pages:
+  script:
+    - echo "Hello"
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
