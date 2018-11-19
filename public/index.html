@@ -1,0 +1,72 @@
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
+</head>
+<body>
+<script>
+
+
+
+// https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
+
+var chunks = [];
+function streamReady(stream) {
+
+    var socket = io('http://localhost:3000');
+    
+  
+    var mediaRecorder = new MediaRecorder(stream);
+    
+    mediaRecorder.start();
+    
+    console.log(mediaRecorder.state);
+    console.log("recorder started");
+    
+    // https://developer.mozilla.org/en-US/docs/Web/API/BlobEvent
+    mediaRecorder.ondataavailable = function(blobEvent) {
+        var blob = blobEvent.data
+        console.log('blob', blob.type ,blob.size);
+      chunks.push(blobEvent.data);
+      socket.emit('blob', blob);
+    }
+
+    setTimeout(mediaRecorder.stop, 50000);    
+  //      mediaRecorder.stop();
+
+    mediaRecorder.onstop = function(e) {
+        socket.emit('end', {});
+    
+      
+        var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+        chunks = [];
+        var audioURL = URL.createObjectURL(blob);
+      
+        var audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = audioURL;
+        audio.setAttribute('controls', '');
+        document.body.appendChild(audio);
+    }
+    
+    
+}
+  
+function start() {
+    if (navigator.mediaDevices) {
+    
+      console.log('getUserMedia supported.');
+    
+      var constraints = { audio: true };
+      
+      
+      navigator.mediaDevices.getUserMedia(constraints)
+      .then(streamReady)
+      .catch(function(err) {
+        console.log('The following error occurred: ' + err);
+      })
+    }
+}
+
+</script>
+</body>
+</html>
