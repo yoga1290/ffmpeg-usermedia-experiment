@@ -6,14 +6,12 @@
 <script>
 
 
+// https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content#Warnings_in_Web_Console
+var socket = io('http://127.0.0.1:3000/my-namespace');
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
-
 var chunks = [];
 function streamReady(stream) {
-
-// https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content#Warnings_in_Web_Console
-    var socket = io('http://127.0.0.1:3000/my-namespace');
 
     console.log('stream', stream);
     var mediaRecorder = new MediaRecorder(stream);
