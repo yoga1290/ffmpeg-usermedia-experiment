@@ -1,6 +1,7 @@
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script> -->
+<script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 <script>
@@ -40,6 +41,7 @@ function streamReady(stream) {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/start#Syntax
+    // "The number of milliseconds to record into each Blob"
     mediaRecorder.start(200);
     console.log('mediaRecorder.state', mediaRecorder.state);
     console.log("recorder started");
@@ -55,7 +57,7 @@ function start() {
 
       console.log('getUserMedia supported.');
 
-      var constraints = { audio: true };
+      var constraints = { audio: true, video:true };
 
 
       navigator.mediaDevices.getUserMedia(constraints)

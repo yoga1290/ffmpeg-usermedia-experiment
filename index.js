@@ -11,11 +11,19 @@ const { Readable } = require('stream');
 const EV_STREAM = 'blob'
 const EV_ESTREAM = 'end'
 
-
-// var file = fs.createWriteStream('./big.file', {
-//   flags : 'w',
-//   encoding: 'binary'
-//  });
+let content = []
+let endOfStream = false
+let _waitForBuffer = []
+function waitForBuffer(callback) {
+  if (callback !== undefined) {
+    _waitForBuffer.push(callback)
+  } else if ((_waitForBuffer.length >0 && content.length > 0) || endOfStream)  {
+    let buffer = Buffer.concat(content) //, 'binary')
+    _waitForBuffer.forEach(cb=>cb(buffer))
+    _waitForBuffer = []
+    content = []
+  }
+}
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/public/index.html');
@@ -34,40 +42,66 @@ nsp.on('connection', (socket) => {
 
   console.log('socket connected')
   
-  dx = new Readable({
-      read(size) {
-          // this.push('foo');
-          
-          // console.log('a user connected');
-          socket.on(EV_STREAM, (buffer) => {
-            // console.log('stream recieved');
-            // console.log(buffer);
-            // https://nodejs.org/api/stream.html#stream_class_stream_writable
-            // file.write(buffer);
-            console.log('buffer', buffer)
-            this.push(buffer);
-          });
-          socket.on(EV_ESTREAM, () => {
-            this.push(null)
-            // res.end()
-            console.log('================= END')
-          });
-
-      }
-  })
+  socket.on(EV_STREAM, (buffer) => {
+    // console.log('stream recieved');
+    // console.log(buffer);
+    // https://nodejs.org/api/stream.html#stream_class_stream_writable
+    // file.write(buffer);
+    console.log('buffer', buffer.length)
+    content.push(buffer);
+    waitForBuffer()
+    endOfStream = false
+  });
+  
+  socket.on(EV_ESTREAM, () => {
+    endOfStream = true
+    _start = _end = 0
+    console.log('================= END')
+  });
 
 })
 
 app.get('/view', (req, res) => {
 
-    // .header('Content-Type', 'audio/ogg')
-    if (dx) {
-      // res.header('Content-Type', 'audio/ogg')
-      dx.pipe(res)
-    } else {
-      res.status(401).end()
-    }
+  let { range } = req.headers;
+  
+  let start = 0
+  let end = start;
 
+  if (range && range.length > 0) { // not the 1st request
+    var parts = range.replace(/bytes=/, "").split("-");
+    start = parts[0] ? parseInt(parts[0]):_start;
+  }
+
+  let total = 1<<30//'*'
+
+  if (!endOfStream) {
+    waitForBuffer(function(buffer) {
+      //wait for another
+      // total = end + Buffer.byteLength(buffer, 'binary') //'*'
+      end = start + Buffer.byteLength(buffer, 'binary')
+      console.log(start, end, buffer)
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${total}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": (end-start),
+        "Content-Type": "video/webm"
+        // "Content-Type": "audio/ogg"
+      });
+      res.end(buffer, 'binary');
+    })
+  } else {
+    console.log('END OF STREAM=====')
+    res.writeHead(206, {
+      "Content-Range": `bytes ${start}-${end}/${end}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": 0,
+      "Content-Type": "video/webm"
+      // "Content-Type": "audio/ogg"
+    });
+    res.end(null)
+  }
+  
 })
 
 
