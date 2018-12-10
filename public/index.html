@@ -6,9 +6,10 @@
 <body>
 <script>
 
+  var ip = prompt('IP', '127.0.0.1');
 
 // https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content#Warnings_in_Web_Console
-var socket = io('http://127.0.0.1:3000/my-namespace');
+var socket = io('http://' + ip + ':3000/my-namespace');
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 var chunks = [];
@@ -46,9 +47,10 @@ function streamReady(stream) {
     console.log('mediaRecorder.state', mediaRecorder.state);
     console.log("recorder started");
 
-    setTimeout(function() {
-      mediaRecorder.stop();
-    }, 50000);
+    // setTimeout(function() {
+    //   mediaRecorder.stop();
+    // }, 50000);
+
   //      mediaRecorder.stop();
 }
 
