@@ -1,15 +1,15 @@
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
-<!-- <script src="/socket.io/socket.io.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script> -->
+<script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 <script>
 
-  var ip = prompt('IP', '127.0.0.1');
+  var ip = prompt('IP', window.location.host);
 
 // https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content#Warnings_in_Web_Console
-var socket = io('http://' + ip + ':3000/my-namespace');
+var socket = io('http://' + ip + '/my-namespace');
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
 var chunks = [];

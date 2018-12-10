@@ -25,7 +25,13 @@ function waitForBuffer(callback) {
   }
 }
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  next()
+})
+
 app.get('/', function(req, res){
+  // res.header('Access-Control-Allow-Origin', 'yoga1290.gitlab.io')
   res.sendFile(__dirname + '/public/index.html');
 });
 
@@ -61,46 +67,76 @@ nsp.on('connection', (socket) => {
 
 })
 
+let start = 0
+let end = start;
+
 app.get('/view', (req, res) => {
 
   let { range } = req.headers;
   
-  let start = 0
-  let end = start;
+  // see https://ffmpeg.org/pipermail/ffmpeg-user/2014-March/020639.html //TODO?
 
-  if (range && range.length > 0) { // not the 1st request
-    var parts = range.replace(/bytes=/, "").split("-");
-    start = parts[0] ? parseInt(parts[0]):_start;
-  }
+  console.log('req.headers', req.headers)
+  // let start = 0
+  // let end = start;
 
-  let total = 1<<30//'*'
+  // https://stackoverflow.com/q/53259737
+  if (!range) {
+    res.writeHead(200, {
+      "Accept-Ranges": "bytes",
+      "Connection": "keep-alive", // not needed
+      // "Content-Length": 1<<30,
+      "Content-Type": "video/webm"
+      // "Content-Type": "audio/ogg"
+    });
+    res.end(null);
+  } else {
 
-  if (!endOfStream) {
-    waitForBuffer(function(buffer) {
+    if (range && range.length > 0) { // not the 1st request
+      var parts = range.replace(/bytes=/, "").split("-");
+      start = parts[0] ? parseInt(parts[0]):_start;
+    }
+  
+    let total = 1<<30//'*'
+  
+    function callback(buffer) {
       //wait for another
       // total = end + Buffer.byteLength(buffer, 'binary') //'*'
       end = start + Buffer.byteLength(buffer, 'binary')
       console.log(start, end, buffer)
+      if (start < end ) {
+        res.writeHead(206, {
+          "Content-Range": `bytes ${start}-${end}/${total}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": 1<<30,//(end-start),
+          "Connection": "close",//"keep-alive",
+          "Content-Type": "video/webm"
+          // "Content-Type": "audio/ogg"
+        });
+        res.end(buffer, 'binary');
+      } else { // 0 bytes skip
+        waitForBuffer(callback)
+      }
+  
+    }
+  
+    if (!endOfStream) {
+      waitForBuffer(callback)
+    } else {
+      console.log('END OF STREAM=====')
       res.writeHead(206, {
-        "Content-Range": `bytes ${start}-${end}/${total}`,
+        "Content-Range": `bytes ${start}-${end}/${end}`,
         "Accept-Ranges": "bytes",
-        "Content-Length": (end-start),
+        "Content-Length": 0,
         "Content-Type": "video/webm"
         // "Content-Type": "audio/ogg"
       });
-      res.end(buffer, 'binary');
-    })
-  } else {
-    console.log('END OF STREAM=====')
-    res.writeHead(206, {
-      "Content-Range": `bytes ${start}-${end}/${end}`,
-      "Accept-Ranges": "bytes",
-      "Content-Length": 0,
-      "Content-Type": "video/webm"
-      // "Content-Type": "audio/ogg"
-    });
-    res.end(null)
+      res.end(null)
+    }
+
   }
+
+  
   
 })
 
