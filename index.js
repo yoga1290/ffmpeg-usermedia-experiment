@@ -6,7 +6,10 @@ const fs = require('fs');
 
 // a Duplex stream that buffers incoming written data via the Writable interface that is read back out via the Readable interface.
 // see https://nodejs.org/api/stream.html#stream_an_example_duplex_stream
-const { Readable } = require('stream');
+// const { Readable } = require('stream');
+
+
+console.log(`FFMPEG installed at ${require('@ffmpeg-installer/ffmpeg').path}`);
 
 const EV_STREAM = 'blob'
 const EV_ESTREAM = 'end'
@@ -84,7 +87,7 @@ app.get('/view', (req, res) => {
   if (!range) {
     res.writeHead(200, {
       "Accept-Ranges": "bytes",
-      "Connection": "keep-alive", // not needed
+      "Connection": "close", // not needed
       // "Content-Length": 1<<30,
       "Content-Type": "video/webm"
       // "Content-Type": "audio/ogg"
@@ -108,7 +111,7 @@ app.get('/view', (req, res) => {
         res.writeHead(206, {
           "Content-Range": `bytes ${start}-${end}/${total}`,
           "Accept-Ranges": "bytes",
-          "Content-Length": 1<<30,//(end-start),
+          "Content-Length": (end-start),
           "Connection": "close",//"keep-alive",
           "Content-Type": "video/webm"
           // "Content-Type": "audio/ogg"

@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "ffmpeg": "./node_modules/@ffmpeg-installer/linux-x64/ffmpeg",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,6 +19,7 @@
   },
   "homepage": "https://gitlab.com/yoga1290/usermedia-test#readme",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.16",
     "express": "^4.16.4",
     "socket.io": "^2.1.1"
   }
