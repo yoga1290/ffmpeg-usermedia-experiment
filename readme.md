@@ -1,9 +1,9 @@
 # What's this?
 
-This is an experiment which aims to capture HTML5 [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) coming from a web browser webcam, pass it to [Express](https://expressjs.com/) server through a [Socket.IO](https://socket.io/) namespace which will be buffered and stream through Express endpoint as [HTTP partial/range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests)
+This is an experiment which aims to capture HTML5 [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) coming from a web browser webcam, pass it to [Express](https://expressjs.com/) server through a [Socket.IO](https://socket.io/) namespace which will be buffered and stream through Express endpoint in form of [HTTP partial/range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests)
 
 
-# Enviroment
+# Environment
 
 + FireFox or Chrome (but not Safari)
 + [Node & NPM](https://nodejs.org/en/download/)
