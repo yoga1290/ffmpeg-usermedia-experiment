@@ -19,12 +19,19 @@ let endOfStream = false
 let _waitForBuffer = []
 function waitForBuffer(callback) {
   if (callback !== undefined) {
+    console.log('<<<<<< wait')
     _waitForBuffer.push(callback)
   } else if ((_waitForBuffer.length >0 && content.length > 0) || endOfStream)  {
+
+    console.log('>>>>>pulling', content.length)
+
     let buffer = Buffer.concat(content) //, 'binary')
-    _waitForBuffer.forEach(cb=>cb(buffer))
-    _waitForBuffer = []
     content = []
+
+    _waitForBuffer.shift()(buffer) //de-queue
+
+  } else {
+    // console.log('waitForBuffer', _waitForBuffer.length, content.length, endOfStream)
   }
 }
 
@@ -52,11 +59,8 @@ nsp.on('connection', (socket) => {
   console.log('socket connected')
   
   socket.on(EV_STREAM, (buffer) => {
-    // console.log('stream recieved');
-    // console.log(buffer);
+    console.log(EV_STREAM, buffer)
     // https://nodejs.org/api/stream.html#stream_class_stream_writable
-    // file.write(buffer);
-    console.log('buffer', buffer.length)
     content.push(buffer);
     waitForBuffer()
     endOfStream = false
@@ -65,14 +69,15 @@ nsp.on('connection', (socket) => {
   socket.on(EV_ESTREAM, () => {
     endOfStream = true
     _start = _end = 0
+    waitForBuffer()
     console.log('================= END')
   });
-
 })
 
 let start = 0
 let end = start;
 
+// Range Requests
 app.get('/view', (req, res) => {
 
   let { range } = req.headers;
@@ -138,11 +143,38 @@ app.get('/view', (req, res) => {
     }
 
   }
-
-  
-  
 })
 
+// https://en.wikipedia.org/wiki/Chunked_transfer_encoding
+// https://github.com/expressjs/compression/issues/56#issuecomment-149734757
+app.get('/chunked', (req, res) => {
+  res.writeHead(200, {
+    "Transfer-Encoding": "chunked",
+    "Content-Type": "video/webm"
+  });
+
+  let callback = () => {
+    console.log('waitForBuffer')
+    waitForBuffer((buffer) => {
+
+      console.log('RESPONSE w buffer', endOfStream, buffer)
+      
+      if (!endOfStream) {
+        res.write(buffer);
+        // res.flush() //deprecated
+        res.flushHeaders()
+
+        callback()
+      } else {
+        res.end()
+      }
+
+    })
+  }
+
+  callback()
+  
+})
 
 
 http.listen(3000, function(){
