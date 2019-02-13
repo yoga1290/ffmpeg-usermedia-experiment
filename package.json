@@ -7,6 +7,7 @@
     "start": "npm run build && node public/index.js",
     "ffmpeg": "./node_modules/@ffmpeg-installer/linux-x64/ffmpeg",
     "build": "babel -d public src",
+    "canvas": "npm run ffmpeg -- -y -r 1/5 -start_number 0 -i http://localhost:3000/canvas/i%03d.png -c:v libx264 -vf fps=25 -pix_fmt yuv420p output.mp4",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
